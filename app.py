@@ -14,7 +14,7 @@ app = Flask(__name__)
 @app.route("/", methods=["GET","POST"])
 
 def logIn():
-    return render_template("home.html")
+    return render_template("login.html")
 
 
 ### SERVER INIT ###########################################################################
