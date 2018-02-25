@@ -2,28 +2,11 @@
 ### IMPORTS ################################################################################
 
 from flask import Flask, render_template, redirect, url_for, request
-from wtforms import Form, StringField, PasswordField
-from flask_mysqldb import MySQL
-from passlib.hash import sha256_crypt
 from testLib import *
 
 ### APP-CONFIG #############################################################################
 
 app = Flask(__name__)
-
-mysql = MySQL(app)
-
-### MySQL-CONFIG ############################################################################
-
-app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = "H1nchley"
-app.config["MYSQL_DB"] = "schema2"
-app.config["MYSQL_HOST"] = "localhost"
-
-
-### SECRET KEY #############################################################################
-
-app.secret_key = "6d61374da4b4df53c6f8fbf4c9b05576d647a07da7498b400abaf7e1f4f44124"
 
 
 ### ROUTE FOR LOGIN ########################################################################
@@ -31,6 +14,7 @@ app.secret_key = "6d61374da4b4df53c6f8fbf4c9b05576d647a07da7498b400abaf7e1f4f441
 @app.route("/", methods=["GET","POST"])
 
 def login():
+    return render_template
     form = LogInForm(request.form)
     if request.method == "POST":
             log("UserName", form.UserName.data)
