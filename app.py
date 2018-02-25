@@ -42,10 +42,10 @@ def login():
                 if sha256_crypt.verify(form.Password.data, (userIndex[2])):
                     return redirect(url_for("profile"))
                 else:
-                    flash(" Incorrect usernamem or password!!!")
+                    flash(" Incorrect Username or Password!!!")
                     return redirect(url_for("login",))
             except:
-                flash(" Incorrect username or password!!!")
+                flash(" Incorrect Username or Password!!!")
                 return redirect(url_for("login",))
     return render_template("login.html", form=form)
 
@@ -54,7 +54,7 @@ class LogInForm(Form):
     validators.Length(min = 4, max=20, message="Usernames are between 4 and 20 characters long")])
 
     Password = PasswordField(u"Password", validators = [validators.input_required(message="You forgot to enter your password!"),
-    validators.Length(min=5, max=20, message="Usernames are between 4 and 20 characters long")])
+    validators.Length(min=5, max=20, message="Passwords are between 4 and 20 characters long")])
 
 ### ROUTE FOR PROFILE ########################################################################
 
