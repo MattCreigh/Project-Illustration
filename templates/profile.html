@@ -1,5 +1,12 @@
 {% extends "layout.html" %}
 
 {% block body %}
-  <h1><strong>Hi</strong></h1>
+<div class="TableDiv">
+  <table class="Table">
+    {% include "includes/_tableHeader.html" %}
+    {% for n in range(0, shiftCount) %}
+      {% include "includes/_tableRow.html" %}
+    {% endfor %}
+  </table>
+</div>
 {% endblock %}

@@ -69,8 +69,48 @@ class LogInForm(Form):
 @app.route("/profile", methods=["GET","POST"])
 
 def profile():
+    tableList = []
+    shiftDays = []
+    tableRowList = []
+    dayShiftList = []
+    shiftCount = int()
+
+    def tableRow(day,startTime, finishTime):
+        tableRowList = [day, startTime, finishTime]
+        tableList.append(tableRowList)
+        return tableList
+
     if "logged" in session:
-        return render_template("profile.html")
+        cur = mysql.connection.cursor()
+        cur.execute("""SELECT * FROM trunk_user_index WHERE userName = "%s";""" % session["username"])
+        userInfoList = cur.fetchone()
+        cur.close()
+
+        for n in range(3, len(userInfoList)):
+            if userInfoList[n] == "y":
+                shiftDays.append(cur.description[n][0])
+                shiftCount = len(shiftDays)
+
+        for n in range(0, shiftCount):
+            cur = mysql.connection.cursor()
+            cur.execute("""SELECT * FROM %s WHERE %s = "%s";""" % (shiftDays[n], (shiftDays[n][0:3])+"UserID", userInfoList[0]))
+            try:
+                dayShiftList = cur.fetchall()[0]
+                cur.close()
+                day = shiftDays[n]
+                startTime = str(dayShiftList[2])
+                finishTime = str(dayShiftList[3])
+                tableRow(day,startTime,finishTime)
+            except:
+                cur.close()
+                continue
+
+        return render_template("profile.html",
+                               shiftCount = shiftCount,
+                               userInfoList = userInfoList,
+                               shiftDays = shiftDays,
+                               tableList = tableList)
+
     else:
         return redirect(url_for("login"))
 
