@@ -85,34 +85,88 @@ def profile():
         cur.execute("""SELECT * FROM trunk_user_index WHERE userName = "%s";""" % session["username"])
         userInfoList = cur.fetchone()
         cur.close()
+        if session["username"] == "admin":
+            return redirect(url_for("adminProfile"))
 
-        for n in range(3, len(userInfoList)):
-            if userInfoList[n] == "y":
-                shiftDays.append(cur.description[n][0])
-                shiftCount = len(shiftDays)
+        else:
+            for n in range(3, len(userInfoList)):
+                if userInfoList[n] == "y":
+                    shiftDays.append(cur.description[n][0])
+                    shiftCount = len(shiftDays)
 
-        for n in range(0, shiftCount):
-            cur = mysql.connection.cursor()
-            cur.execute("""SELECT * FROM %s WHERE %s = "%s";""" % (shiftDays[n], (shiftDays[n][0:3])+"UserID", userInfoList[0]))
-            try:
-                dayShiftList = cur.fetchall()[0]
-                cur.close()
-                day = shiftDays[n]
-                startTime = str(dayShiftList[2])
-                finishTime = str(dayShiftList[3])
-                tableRow(day,startTime,finishTime)
-            except:
-                cur.close()
-                continue
+            for n in range(0, shiftCount):
+                cur = mysql.connection.cursor()
+                cur.execute("""SELECT * FROM %s WHERE %s = "%s";""" % (shiftDays[n], (shiftDays[n][0:3])+"UserID", userInfoList[0]))
+                try:
+                    dayShiftList = cur.fetchall()[0]
+                    cur.close()
+                    day = shiftDays[n]
+                    startTime = str(dayShiftList[2])
+                    finishTime = str(dayShiftList[3])
+                    tableRow(day,startTime,finishTime)
+                except:
+                    cur.close()
+                    continue
 
-        return render_template("profile.html",
-                               shiftCount = shiftCount,
-                               userInfoList = userInfoList,
-                               shiftDays = shiftDays,
-                               tableList = tableList)
+            return render_template("profile.html",
+                                   shiftCount = shiftCount,
+                                   userInfoList = userInfoList,
+                                   shiftDays = shiftDays,
+                                   tableList = tableList)
 
     else:
         return redirect(url_for("login"))
+
+
+### ADMIN PROFILE ROUTE ####################################################################
+
+@app.route("/adminprofile", methods=["GET", "POST"])
+
+def adminProfile():
+    tableList = []
+    dayShiftList = []
+    shiftDays = []
+    shiftCount = 0
+
+    def adminTableRow(day,name,startTime,finishTime):
+        adminTableRowList = [day, name, startTime, finishTime]
+        tableList.append(adminTableRowList)
+        return tableList
+
+    shiftDays = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
+
+    cur = mysql.connection.cursor()
+    cur.execute("""SELECT * FROM trunk_user_index""")
+    stage1 = cur.fetchall()
+    for n in range(0, len(stage1)):
+        stage2 = stage1[n]
+        for n in range(3, len(stage2)):
+            if stage2[n] == "y":
+                shiftCount = shiftCount+1
+
+    for n in range(0, 7):
+        day = shiftDays[n]
+        cur = mysql.connection.cursor()
+        cur.execute("""SELECT * FROM %s;""" % (shiftDays[n]))
+        dayShiftList = cur.fetchall()
+        cur.close()
+        for n in range(0, len(dayShiftList)):
+            startTime = str(dayShiftList[n][2])
+            finishTime = str(dayShiftList[n][3])
+            try:
+                cur = mysql.connection.cursor()
+                cur.execute("""SELECT * FROM trunk_user_index WHERE userID = %s;""" %dayShiftList[n][1])
+                name = cur.fetchone()[1]
+                cur.close()
+            except:
+                continue
+            adminTableRow(day, name, startTime, finishTime)
+
+        shiftCount = len(tableList)
+    return render_template("adminProfile.html",
+                           shiftCount = shiftCount,
+                           shiftDays = shiftDays,
+                           tableList = tableList)
 
 
 ### LOGOUT ROUTE ###########################################################################
