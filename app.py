@@ -1,7 +1,7 @@
 
 ### IMPORTS ################################################################################
 
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template, redirect, url_for, request, flash, session
 from wtforms import Form, StringField, PasswordField, validators
 from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
@@ -31,22 +31,30 @@ app.secret_key = "6d61374da4b4df53c6f8fbf4c9b05576d647a07da7498b400abaf7e1f4f441
 @app.route("/", methods=["GET","POST"])
 
 def login():
-    form = LogInForm(request.form)
-    if request.method == "POST" and form.validate():
-            log("UserName", form.UserName.data)
+    try :
+        if session["logged"] == True:
+            return redirect(url_for("profile"))
+    except:
+        form = LogInForm(request.form)
+        if request.method == "POST" and form.validate():
             try:
                 cur = mysql.connection.cursor()
-                cur.execute("""SELECT * FROM trunk_user_index WHERE userName = "%s";""" %form.UserName.data)
+                cur.execute("""SELECT * FROM trunk_user_index WHERE userName = "%s";""" %str(form.UserName.data))
                 userIndex = cur.fetchone()
                 cur.close()
+                log("password", (userIndex)[2])
                 if sha256_crypt.verify(form.Password.data, (userIndex[2])):
+                    session["logged"] = True
+                    session["username"] = form.UserName.data
+                    session["userID"] = cur.fetchmany(0)
                     return redirect(url_for("profile"))
                 else:
-                    flash(" Incorrect Username or Password!!!")
-                    return redirect(url_for("login",))
+                    flash(" Incorrect username or password!!!")
+                    return redirect(url_for("login"))
             except:
-                flash(" Incorrect Username or Password!!!")
+                flash(" Incorrect username or password!!!")
                 return redirect(url_for("login",))
+        return render_template("login.html", form=form)
     return render_template("login.html", form=form)
 
 class LogInForm(Form):
@@ -61,7 +69,22 @@ class LogInForm(Form):
 @app.route("/profile", methods=["GET","POST"])
 
 def profile():
-    return render_template("profile.html")
+    if "logged" in session:
+        return render_template("profile.html")
+    else:
+        return redirect(url_for("login"))
+
+
+### LOGOUT ROUTE ###########################################################################
+
+@app.route("/logout", methods=["GET", "POST"])
+
+def logOut():
+    if "logged" in session:
+        session.pop("logged")
+        return redirect(url_for("login"))
+    else:
+        return redirect(url_for("login"))
 
 
 

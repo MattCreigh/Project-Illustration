@@ -1,0 +1,7 @@
+<div class="NavContainer">
+  <div class="LogOutContainer">
+    {% if session.logged %}
+      <form action="/logout" method="post"><button type="submit" id="LogOut">Log Out</button></form>
+    {% endif %}
+  </div>
+</div>
